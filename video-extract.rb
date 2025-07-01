@@ -2,11 +2,11 @@ class VideoExtract < Formula
   include Language::Python::Virtualenv
 
   desc "AI-powered YouTube video transcript and slide analyzer"
-  homepage "https://github.com/your-username/video-extract"
-  url "https://github.com/your-username/video-extract/archive/v1.0.0.tar.gz"
-  sha256 "PLACEHOLDER_SHA256"
+  homepage "https://github.com/philippb/video-extract"
+  url "https://github.com/philippb/video-extract/archive/v1.0.0.tar.gz"
+  sha256 "dc79d8cb2d21983b425233f71cab8ce21a0847cb7b24def8cf499c8d67ee58fc"
   license "MIT"
-  head "https://github.com/your-username/video-extract.git", branch: "main"
+  head "https://github.com/philippb/video-extract.git", branch: "main"
 
   depends_on "python@3.12"
   depends_on "ffmpeg"
