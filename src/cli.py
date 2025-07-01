@@ -411,10 +411,12 @@ def main():
         # Step 6: Generate output
         logger.info("Step 6: Generating output...")
         try:
-            if args.output_format == "json":
-                output_path = output_generator.generate_json_report(video_id, summarized_slides)
-            else:
-                output_path = output_generator.generate_markdown_report(video_id, summarized_slides)
+            output_path = output_generator.generate_output(
+                summarized_slides, 
+                video_id, 
+                format_type=args.output_format,
+                video_url=args.url_or_id
+            )
             
             logger.info(f"Output saved: {output_path}")
             print(f"\n✅ Processing complete!")
