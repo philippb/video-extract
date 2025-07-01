@@ -159,15 +159,15 @@ def parse_arguments():
 Examples:
   video-extract init                                    # Setup with API key prompt
   video-extract config                                  # Edit configuration file
-  video-extract "https://www.youtube.com/watch?v=VIDEO_ID"
-  video-extract VIDEO_ID --output-format json --scene-threshold 0.2
-  video-extract "https://youtu.be/VIDEO_ID" --dry-run --no-ocr
-  video-extract VIDEO_ID --language es --max-slides 20
+  video-extract slides "https://www.youtube.com/watch?v=VIDEO_ID"
+  video-extract slides VIDEO_ID --output-format json --scene-threshold 0.2
+  video-extract slides "https://youtu.be/VIDEO_ID" --dry-run --no-ocr
+  video-extract slides VIDEO_ID --language es --max-slides 20
         """
     )
     
     # Add subcommands
-    subparsers = parser.add_subparsers(dest='command', help='Available commands', required=False)
+    subparsers = parser.add_subparsers(dest='command', help='Available commands', required=True)
     
     # Init command
     init_parser = subparsers.add_parser('init', help='Initialize configuration with API key setup')
@@ -175,76 +175,76 @@ Examples:
     # Config command
     config_parser = subparsers.add_parser('config', help='Open configuration file in editor')
     
-    # For backward compatibility and when no subcommand is provided
-    parser.add_argument(
+    # Slides command (main processing)
+    slides_parser = subparsers.add_parser('slides', help='Extract and analyze video slides')
+    slides_parser.add_argument(
         "url_or_id",
-        nargs='?',
         help="YouTube URL or video ID"
     )
     
-    parser.add_argument(
+    slides_parser.add_argument(
         "--output-format",
         choices=["markdown", "json"],
         default="markdown",
         help="Output format (default: markdown)"
     )
     
-    parser.add_argument(
+    slides_parser.add_argument(
         "--scene-threshold",
         type=float,
         help="Scene change detection threshold (0.1-1.0, default: 0.3)"
     )
     
-    parser.add_argument(
+    slides_parser.add_argument(
         "--language",
         default="en",
         help="Transcript language code (default: en)"
     )
     
-    parser.add_argument(
+    slides_parser.add_argument(
         "--max-slides",
         type=int,
         help="Maximum number of slides to extract (default: 100)"
     )
     
-    parser.add_argument(
+    slides_parser.add_argument(
         "--openai-tier",
         type=int,
         choices=[0, 1, 2, 3, 4, 5],
         help="OpenAI API tier for rate limiting (0-5, default: from config)"
     )
     
-    parser.add_argument(
+    slides_parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Skip API calls for testing"
     )
     
-    parser.add_argument(
+    slides_parser.add_argument(
         "--no-ocr",
         action="store_true",
         help="Skip OCR text extraction"
     )
     
-    parser.add_argument(
+    slides_parser.add_argument(
         "--no-vision",
         action="store_true",
         help="Use text-only AI summarization"
     )
     
-    parser.add_argument(
+    slides_parser.add_argument(
         "--keep-temp",
         action="store_true",
         help="Keep temporary files after processing"
     )
     
-    parser.add_argument(
+    slides_parser.add_argument(
         "--log-level",
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
         help="Logging level"
     )
     
-    parser.add_argument(
+    slides_parser.add_argument(
         "--output-dir",
         help="Output directory for reports"
     )
@@ -304,11 +304,16 @@ def main():
             config_command()
             return
         
-        # Check if URL/ID is provided for extract command
-        if not args.url_or_id:
-            print("❌ Error: YouTube URL or video ID is required")
+        # Handle slides command
+        if args.command == 'slides':
+            # Check if URL/ID is provided
+            if not args.url_or_id:
+                print("❌ Error: YouTube URL or video ID is required")
+                print("Run 'video-extract slides --help' for usage information")
+                sys.exit(1)
+        else:
+            print("❌ Error: Unknown command")
             print("Run 'video-extract --help' for usage information")
-            print("Run 'video-extract init' to initialize configuration")
             sys.exit(1)
         
         # Load user configuration

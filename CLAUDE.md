@@ -45,8 +45,8 @@ video-extract init
 video-extract config
 
 # Process videos
-video-extract "https://www.youtube.com/watch?v=VIDEO_ID" --output-format markdown --scene-threshold 0.3
-video-extract VIDEO_ID --max-slides 10
+video-extract slides "https://www.youtube.com/watch?v=VIDEO_ID" --output-format markdown --scene-threshold 0.3
+video-extract slides VIDEO_ID --max-slides 10
 ```
 
 ## Environment Variables

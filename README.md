@@ -95,19 +95,19 @@ video-extract init
 video-extract init
 
 # Basic usage with video ID (recommended)
-video-extract VIDEO_ID
+video-extract slides VIDEO_ID
 
 # Or use full URL (remember to quote it)
-video-extract "https://www.youtube.com/watch?v=VIDEO_ID"
+video-extract slides "https://www.youtube.com/watch?v=VIDEO_ID"
 
 # Generate JSON output
-video-extract VIDEO_ID --output-format json
+video-extract slides VIDEO_ID --output-format json
 
 # Custom scene detection threshold
-video-extract "https://youtu.be/VIDEO_ID" --scene-threshold 0.2
+video-extract slides "https://youtu.be/VIDEO_ID" --scene-threshold 0.2
 
 # Dry run (no API calls)
-video-extract VIDEO_ID --dry-run
+video-extract slides VIDEO_ID --dry-run
 
 # Edit configuration
 video-extract config
@@ -117,7 +117,7 @@ video-extract config
 
 ### Process a Technical Presentation
 ```bash
-video-extract "https://www.youtube.com/watch?v=dQw4w9WgXcQ" \
+video-extract slides "https://www.youtube.com/watch?v=dQw4w9WgXcQ" \
   --output-format markdown \
   --scene-threshold 0.3 \
   --max-slides 50
@@ -125,7 +125,7 @@ video-extract "https://www.youtube.com/watch?v=dQw4w9WgXcQ" \
 
 ### Generate JSON Data for API Integration
 ```bash
-video-extract VIDEO_ID \
+video-extract slides VIDEO_ID \
   --output-format json \
   --no-ocr \
   --output-dir ./reports
