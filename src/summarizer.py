@@ -26,6 +26,7 @@ class SlideSummarizer:
         
         # Reset counter if a minute has passed
         if current_time - self.minute_start >= 60:
+            logger.debug(f"Resetting rate limit counter (was {self.request_count} requests)")
             self.request_count = 0
             self.minute_start = current_time
         
@@ -33,11 +34,15 @@ class SlideSummarizer:
         limits = self.config.get_rate_limits()
         delay = self.config.get_delay_between_requests()
         
+        logger.debug(f"Rate limit check: {self.request_count}/{limits['requests']} requests, "
+                    f"tokens: ~{estimated_tokens}, tier: {self.config.OPENAI_TIER}")
+        
         # Check if we're approaching rate limits
         if self.request_count >= limits["requests"] * 0.8:
             wait_time = 60 - (current_time - self.minute_start)
             if wait_time > 0:
-                logger.info(f"Rate limiting: waiting {wait_time:.1f}s to reset request counter")
+                logger.warning(f"Approaching rate limit ({self.request_count}/{limits['requests']}), "
+                             f"waiting {wait_time:.1f}s to reset counter")
                 time.sleep(wait_time)
                 self.request_count = 0
                 self.minute_start = time.time()
@@ -46,16 +51,24 @@ class SlideSummarizer:
         time_since_last = current_time - self.last_request_time
         if time_since_last < delay:
             wait_time = delay - time_since_last
-            logger.debug(f"Rate limiting: waiting {wait_time:.1f}s between requests")
+            logger.debug(f"Rate limiting: waiting {wait_time:.2f}s between requests (need {delay:.2f}s)")
             time.sleep(wait_time)
         
         self.last_request_time = time.time()
         self.request_count += 1
         
-        logger.debug(f"Request {self.request_count}/{limits['requests']} this minute (Tier {self.config.OPENAI_TIER})")
+        logger.debug(f"Making request {self.request_count}/{limits['requests']} (Tier {self.config.OPENAI_TIER})")
     
     def summarize_slides(self, aligned_slides: List[Dict[str, Any]], use_vision: bool = True) -> List[Dict[str, Any]]:
         summarized_slides = []
+        
+        logger.info(f"Starting summarization of {len(aligned_slides)} slides")
+        logger.info(f"OpenAI settings: model={self.model}, tier={self.config.OPENAI_TIER}")
+        
+        limits = self.config.get_rate_limits()
+        delay = self.config.get_delay_between_requests()
+        logger.info(f"Rate limits: {limits['requests']} req/min, {limits['tokens']} tokens/min")
+        logger.info(f"Configured delay between requests: {delay:.2f}s")
         
         for slide in aligned_slides:
             try:
@@ -67,19 +80,33 @@ class SlideSummarizer:
                 text_to_analyze = transcript_text + ' ' + ocr_text
                 estimated_tokens = self.config.estimate_tokens(text_to_analyze)
                 
+                logger.debug(f"Estimated tokens for slide {slide.get('slide_number')}: {estimated_tokens}")
                 self._wait_for_rate_limit(estimated_tokens)
                 
                 if use_vision and self._supports_vision():
+                    logger.debug(f"Using vision model for slide {slide.get('slide_number')}")
                     summary = self._summarize_with_vision(slide)
                 else:
+                    logger.debug(f"Using text-only model for slide {slide.get('slide_number')}")
                     summary = self._summarize_with_text_only(slide)
                 
                 slide_copy = slide.copy()
                 slide_copy.update(summary)
                 summarized_slides.append(slide_copy)
+                logger.info(f"Successfully summarized slide {slide.get('slide_number')}")
                 
             except Exception as e:
-                logger.error(f"Failed to summarize slide {slide.get('slide_number')}: {e}")
+                logger.error(f"Failed to summarize slide {slide.get('slide_number')}: {type(e).__name__}: {e}")
+                
+                # If it's a rate limit error, show more details
+                if "RateLimitError" in str(type(e)):
+                    logger.error(f"Rate limit hit despite proactive limiting. Tier: {self.config.OPENAI_TIER}")
+                    logger.error(f"Requests this minute: {self.request_count}")
+                    logger.error(f"Time since minute start: {time.time() - self.minute_start:.1f}s")
+                
+                # Log the full exception for debugging
+                import traceback
+                logger.debug(f"Full traceback: {traceback.format_exc()}")
                 
                 slide_copy = slide.copy()
                 slide_copy.update({
@@ -130,14 +157,22 @@ class SlideSummarizer:
             }
         ]
         
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=messages,
-            max_tokens=self.max_tokens,
-            temperature=0.7
-        )
+        logger.debug(f"Making OpenAI API call with model: {self.model}, max_tokens: {self.max_tokens}")
         
-        return self._parse_response(response.choices[0].message.content)
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                max_tokens=self.max_tokens,
+                temperature=0.7
+            )
+            
+            logger.debug(f"API call successful, tokens used: {getattr(response.usage, 'total_tokens', 'unknown')}")
+            return self._parse_response(response.choices[0].message.content)
+            
+        except Exception as api_error:
+            logger.error(f"OpenAI API error: {type(api_error).__name__}: {api_error}")
+            raise
     
     @retry(
         stop=stop_after_attempt(6),
@@ -168,14 +203,22 @@ class SlideSummarizer:
             }
         ]
         
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=messages,
-            max_tokens=self.max_tokens,
-            temperature=0.7
-        )
+        logger.debug(f"Making OpenAI API call with model: {self.model}, max_tokens: {self.max_tokens}")
         
-        return self._parse_response(response.choices[0].message.content)
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                max_tokens=self.max_tokens,
+                temperature=0.7
+            )
+            
+            logger.debug(f"API call successful, tokens used: {getattr(response.usage, 'total_tokens', 'unknown')}")
+            return self._parse_response(response.choices[0].message.content)
+            
+        except Exception as api_error:
+            logger.error(f"OpenAI API error: {type(api_error).__name__}: {api_error}")
+            raise
     
     def _create_vision_prompt(self, transcript_text: str, ocr_text: str) -> str:
         prompt = """Analyze this slide image and the associated content to create a comprehensive summary.
