@@ -167,7 +167,7 @@ Examples:
     )
     
     # Add subcommands
-    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+    subparsers = parser.add_subparsers(dest='command', help='Available commands', required=False)
     
     # Init command
     init_parser = subparsers.add_parser('init', help='Initialize configuration with API key setup')
