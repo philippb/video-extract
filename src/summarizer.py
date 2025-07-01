@@ -3,6 +3,7 @@ import time
 from typing import List, Dict, Any, Optional
 from openai import OpenAI
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from openai import RateLimitError, APITimeoutError
 from src.config import Config
 from src.utils.logger import get_logger
 
@@ -15,6 +16,43 @@ class SlideSummarizer:
         self.client = OpenAI(api_key=config.OPENAI_API_KEY)
         self.model = config.OPENAI_MODEL
         self.max_tokens = config.OPENAI_MAX_TOKENS
+        self.last_request_time = 0
+        self.request_count = 0
+        self.minute_start = time.time()
+    
+    def _wait_for_rate_limit(self, estimated_tokens: int = 1000):
+        """Wait to respect rate limits based on OpenAI tier"""
+        current_time = time.time()
+        
+        # Reset counter if a minute has passed
+        if current_time - self.minute_start >= 60:
+            self.request_count = 0
+            self.minute_start = current_time
+        
+        # Get rate limits for current tier
+        limits = self.config.get_rate_limits()
+        delay = self.config.get_delay_between_requests()
+        
+        # Check if we're approaching rate limits
+        if self.request_count >= limits["requests"] * 0.8:
+            wait_time = 60 - (current_time - self.minute_start)
+            if wait_time > 0:
+                logger.info(f"Rate limiting: waiting {wait_time:.1f}s to reset request counter")
+                time.sleep(wait_time)
+                self.request_count = 0
+                self.minute_start = time.time()
+        
+        # Ensure minimum delay between requests
+        time_since_last = current_time - self.last_request_time
+        if time_since_last < delay:
+            wait_time = delay - time_since_last
+            logger.debug(f"Rate limiting: waiting {wait_time:.1f}s between requests")
+            time.sleep(wait_time)
+        
+        self.last_request_time = time.time()
+        self.request_count += 1
+        
+        logger.debug(f"Request {self.request_count}/{limits['requests']} this minute (Tier {self.config.OPENAI_TIER})")
     
     def summarize_slides(self, aligned_slides: List[Dict[str, Any]], use_vision: bool = True) -> List[Dict[str, Any]]:
         summarized_slides = []
@@ -22,6 +60,14 @@ class SlideSummarizer:
         for slide in aligned_slides:
             try:
                 logger.info(f"Summarizing slide {slide.get('slide_number', 'unknown')}")
+                
+                # Estimate tokens and wait for rate limit
+                transcript_text = slide.get('transcript_text', '')
+                ocr_text = slide.get('ocr_text', '')
+                text_to_analyze = transcript_text + ' ' + ocr_text
+                estimated_tokens = self.config.estimate_tokens(text_to_analyze)
+                
+                self._wait_for_rate_limit(estimated_tokens)
                 
                 if use_vision and self._supports_vision():
                     summary = self._summarize_with_vision(slide)
@@ -31,9 +77,6 @@ class SlideSummarizer:
                 slide_copy = slide.copy()
                 slide_copy.update(summary)
                 summarized_slides.append(slide_copy)
-                
-                # Rate limiting: wait longer between requests
-                time.sleep(3)
                 
             except Exception as e:
                 logger.error(f"Failed to summarize slide {slide.get('slide_number')}: {e}")
@@ -54,9 +97,9 @@ class SlideSummarizer:
         return 'vision' in self.model.lower() or 'gpt-4' in self.model.lower()
     
     @retry(
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=1, min=4, max=10),
-        retry=retry_if_exception_type((Exception,))
+        stop=stop_after_attempt(6),
+        wait=wait_exponential(multiplier=2, min=4, max=60),
+        retry=retry_if_exception_type((RateLimitError, APITimeoutError))
     )
     def _summarize_with_vision(self, slide: Dict[str, Any]) -> Dict[str, Any]:
         image_path = slide['image_path']
@@ -97,9 +140,9 @@ class SlideSummarizer:
         return self._parse_response(response.choices[0].message.content)
     
     @retry(
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=1, min=4, max=10),
-        retry=retry_if_exception_type((Exception,))
+        stop=stop_after_attempt(6),
+        wait=wait_exponential(multiplier=2, min=4, max=60),
+        retry=retry_if_exception_type((RateLimitError, APITimeoutError))
     )
     def _summarize_with_text_only(self, slide: Dict[str, Any]) -> Dict[str, Any]:
         transcript_text = slide.get('transcript_text', '')
