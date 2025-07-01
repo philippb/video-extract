@@ -316,11 +316,12 @@ def main():
             print("Run 'video-extract --help' for usage information")
             sys.exit(1)
         
-        # Load user configuration
-        load_config_from_user_dir()
-        
         # Initialize configuration
         config = Config()
+        
+        # Load user configuration and reload config
+        load_config_from_user_dir()
+        config.reload_from_env()  # Reload after .env file is loaded
         
         # Validate configuration
         try:

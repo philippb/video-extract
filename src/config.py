@@ -6,36 +6,40 @@ load_dotenv()
 
 
 class Config:
-    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
-    OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4o")
-    OPENAI_TIER: int = int(os.getenv("OPENAI_TIER", "1"))
-    OPENAI_MAX_TOKENS: int = int(os.getenv("OPENAI_MAX_TOKENS", "1000"))
-    OPENAI_TIMEOUT: int = int(os.getenv("OPENAI_TIMEOUT", "30"))
+    def __init__(self):
+        self.reload_from_env()
     
-    LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
+    def reload_from_env(self):
+        """Reload configuration from environment variables"""
+        self.OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
+        self.OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4o")
+        self.OPENAI_TIER: int = int(os.getenv("OPENAI_TIER", "1"))
+        self.OPENAI_MAX_TOKENS: int = int(os.getenv("OPENAI_MAX_TOKENS", "1000"))
+        self.OPENAI_TIMEOUT: int = int(os.getenv("OPENAI_TIMEOUT", "30"))
+        
+        self.LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
+        
+        self.FFMPEG_PATH: str = os.getenv("FFMPEG_PATH", "ffmpeg")
+        self.TESSERACT_CMD: Optional[str] = os.getenv("TESSERACT_CMD")
+        
+        self.SCENE_THRESHOLD: float = float(os.getenv("SCENE_THRESHOLD", "0.3"))
+        self.MAX_SLIDES: int = int(os.getenv("MAX_SLIDES", "100"))
+        self.MIN_SLIDE_DURATION: float = float(os.getenv("MIN_SLIDE_DURATION", "2.0"))
+        
+        self.RETRY_MAX_ATTEMPTS: int = int(os.getenv("RETRY_MAX_ATTEMPTS", "3"))
+        self.RETRY_DELAY: float = float(os.getenv("RETRY_DELAY", "1.0"))
+        
+        self.OUTPUT_DIR: str = os.getenv("OUTPUT_DIR", "videos")
+        self.TRANSCRIPTS_DIR: str = os.getenv("TRANSCRIPTS_DIR", "transcripts")
+        self.SLIDES_DIR: str = os.getenv("SLIDES_DIR", "slides")
+        
+        self.DEFAULT_LANGUAGE: str = os.getenv("DEFAULT_LANGUAGE", "en")
     
-    FFMPEG_PATH: str = os.getenv("FFMPEG_PATH", "ffmpeg")
-    TESSERACT_CMD: Optional[str] = os.getenv("TESSERACT_CMD")
-    
-    SCENE_THRESHOLD: float = float(os.getenv("SCENE_THRESHOLD", "0.3"))
-    MAX_SLIDES: int = int(os.getenv("MAX_SLIDES", "100"))
-    MIN_SLIDE_DURATION: float = float(os.getenv("MIN_SLIDE_DURATION", "2.0"))
-    
-    RETRY_MAX_ATTEMPTS: int = int(os.getenv("RETRY_MAX_ATTEMPTS", "3"))
-    RETRY_DELAY: float = float(os.getenv("RETRY_DELAY", "1.0"))
-    
-    OUTPUT_DIR: str = os.getenv("OUTPUT_DIR", "videos")
-    TRANSCRIPTS_DIR: str = os.getenv("TRANSCRIPTS_DIR", "transcripts")
-    SLIDES_DIR: str = os.getenv("SLIDES_DIR", "slides")
-    
-    DEFAULT_LANGUAGE: str = os.getenv("DEFAULT_LANGUAGE", "en")
-    
-    @classmethod
-    def validate(cls) -> None:
-        if not cls.OPENAI_API_KEY:
+    def validate(self) -> None:
+        if not self.OPENAI_API_KEY:
             raise ValueError("OPENAI_API_KEY environment variable is required")
         
-        os.makedirs(cls.OUTPUT_DIR, exist_ok=True)
+        os.makedirs(self.OUTPUT_DIR, exist_ok=True)
     
     @classmethod
     def get_video_dir(cls, video_id: str) -> str:
