@@ -1,6 +1,6 @@
-# YouTube Slide Summarizer CLI
+# video-extract
 
-A powerful Python CLI tool that extracts YouTube video transcripts, detects slide changes, and generates AI-powered summaries of each slide using OpenAI's GPT models.
+AI-powered YouTube video transcript and slide analyzer. A powerful Python CLI tool that extracts YouTube video transcripts, detects slide changes, and generates AI-powered summaries of each slide using OpenAI's GPT models.
 
 ## Features
 
@@ -13,11 +13,26 @@ A powerful Python CLI tool that extracts YouTube video transcripts, detects slid
 - ⚙️ **Highly Configurable**: Extensive customization options
 - 🔄 **Robust Error Handling**: Comprehensive retry logic and fallback mechanisms
 
-## Requirements
+## Installation
+
+### Via Homebrew (Recommended)
+
+```bash
+# Install video-extract with all dependencies
+brew install video-extract
+
+# Initialize configuration
+video-extract init
+```
+
+### Manual Installation
+
+#### Requirements
 
 - Python 3.8+
 - FFmpeg (for video processing)
 - OpenAI API key
+- Optional: Tesseract OCR
 - Optional: Tesseract OCR (for slide text extraction)
 
 ## Installation

@@ -1,7 +1,7 @@
-# YouTube Slide Summarizer CLI
+# video-extract
 
 ## Project Overview
-A Python CLI tool that extracts YouTube video transcripts and slide images, aligns them, and generates GPT-4 summaries of each slide.
+**video-extract** is a Python CLI tool that extracts YouTube video transcripts and slide images, aligns them, and generates GPT-4 summaries of each slide.
 
 ## Key Features
 - Extracts transcripts from YouTube videos using youtube-transcript-api and yt-dlp fallback
@@ -24,9 +24,29 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
+## Installation & Setup
+```bash
+# Via Homebrew (recommended)
+brew install video-extract
+video-extract init
+
+# Or manual installation
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .
+```
+
 ## Usage
 ```bash
-python cli.py https://www.youtube.com/watch?v=VIDEO_ID --output-format markdown --scene-threshold 0.3
+# Initialize with API key prompt (first time only)
+video-extract init
+
+# Edit configuration file
+video-extract config
+
+# Process videos
+video-extract https://www.youtube.com/watch?v=VIDEO_ID --output-format markdown --scene-threshold 0.3
+video-extract VIDEO_ID --max-slides 10
 ```
 
 ## Environment Variables
