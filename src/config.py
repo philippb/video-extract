@@ -41,34 +41,30 @@ class Config:
         
         os.makedirs(self.OUTPUT_DIR, exist_ok=True)
     
-    @classmethod
-    def get_video_dir(cls, video_id: str) -> str:
+    def get_video_dir(self, video_id: str) -> str:
         """Get the main directory for a video (contains all related files)"""
-        video_dir = os.path.join(cls.OUTPUT_DIR, video_id)
+        video_dir = os.path.join(self.OUTPUT_DIR, video_id)
         os.makedirs(video_dir, exist_ok=True)
         return video_dir
     
-    @classmethod
-    def get_slides_dir(cls, video_id: str) -> str:
+    def get_slides_dir(self, video_id: str) -> str:
         """Get the slides directory for a video"""
-        slides_dir = os.path.join(cls.get_video_dir(video_id), "slides")
+        slides_dir = os.path.join(self.get_video_dir(video_id), "slides")
         os.makedirs(slides_dir, exist_ok=True)
         return slides_dir
     
-    @classmethod
-    def get_transcript_path(cls, video_id: str) -> str:
+    def get_transcript_path(self, video_id: str) -> str:
         """Get the transcript file path for a video"""
-        video_dir = cls.get_video_dir(video_id)
+        video_dir = self.get_video_dir(video_id)
         return os.path.join(video_dir, "transcript.json")
     
-    @classmethod
-    def get_output_path(cls, video_id: str, format_type: str = "md") -> str:
+    def get_output_path(self, video_id: str, format_type: str = "md") -> str:
         """Get the output file path for a video"""
-        video_dir = cls.get_video_dir(video_id)
+        video_dir = self.get_video_dir(video_id)
         return os.path.join(video_dir, f"summary.{format_type}")
     
-    @classmethod
-    def get_video_id_from_url(cls, url: str) -> str:
+    @staticmethod
+    def get_video_id_from_url(url: str) -> str:
         import re
         
         # If it's already just a video ID (11 characters, alphanumeric + - and _)
