@@ -91,30 +91,33 @@ video-extract init
 ## Quick Start
 
 ```bash
-# Basic usage
-python cli.py https://www.youtube.com/watch?v=VIDEO_ID
+# Initialize with your API key (first time only)
+video-extract init
+
+# Basic usage with video ID (recommended)
+video-extract VIDEO_ID
+
+# Or use full URL (remember to quote it)
+video-extract "https://www.youtube.com/watch?v=VIDEO_ID"
 
 # Generate JSON output
-python cli.py VIDEO_ID --output-format json
+video-extract VIDEO_ID --output-format json
 
 # Custom scene detection threshold
-python cli.py https://youtu.be/VIDEO_ID --scene-threshold 0.2
+video-extract "https://youtu.be/VIDEO_ID" --scene-threshold 0.2
 
 # Dry run (no API calls)
-python cli.py VIDEO_ID --dry-run
+video-extract VIDEO_ID --dry-run
 
-# Skip OCR processing
-python cli.py VIDEO_ID --no-ocr
-
-# Use text-only summarization
-python cli.py VIDEO_ID --no-vision
+# Edit configuration
+video-extract config
 ```
 
 ## Usage Examples
 
 ### Process a Technical Presentation
 ```bash
-python cli.py https://www.youtube.com/watch?v=dQw4w9WgXcQ \
+video-extract "https://www.youtube.com/watch?v=dQw4w9WgXcQ" \
   --output-format markdown \
   --scene-threshold 0.3 \
   --max-slides 50
@@ -122,7 +125,7 @@ python cli.py https://www.youtube.com/watch?v=dQw4w9WgXcQ \
 
 ### Generate JSON Data for API Integration
 ```bash
-python cli.py VIDEO_ID \
+video-extract VIDEO_ID \
   --output-format json \
   --no-ocr \
   --output-dir ./reports

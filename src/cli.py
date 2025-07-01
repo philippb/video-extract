@@ -159,9 +159,9 @@ def parse_arguments():
 Examples:
   video-extract init                                    # Setup with API key prompt
   video-extract config                                  # Edit configuration file
-  video-extract https://www.youtube.com/watch?v=VIDEO_ID
+  video-extract "https://www.youtube.com/watch?v=VIDEO_ID"
   video-extract VIDEO_ID --output-format json --scene-threshold 0.2
-  video-extract https://youtu.be/VIDEO_ID --dry-run --no-ocr
+  video-extract "https://youtu.be/VIDEO_ID" --dry-run --no-ocr
   video-extract VIDEO_ID --language es --max-slides 20
         """
     )
