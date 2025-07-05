@@ -81,3 +81,6 @@ python -m black src/ cli.py --check
 - `transcripts/`: Downloaded transcripts
 - `slides/`: Extracted slide images
 - `outputs/`: Final reports
+
+## Claude's Development Guidelines
+- NEVER git add and git commit things yourself without user consent
