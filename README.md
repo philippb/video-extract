@@ -17,13 +17,20 @@ AI-powered YouTube video transcript and slide analyzer. A powerful Python CLI to
 
 ### Via Homebrew (Recommended)
 
+For easy installation with all dependencies, use our Homebrew tap:
+
 ```bash
+# Add the custom tap
+brew tap philippb/video-extract
+
 # Install video-extract with all dependencies
 brew install video-extract
 
 # Initialize configuration
 video-extract init
 ```
+
+For more details, see: https://github.com/philippb/homebrew-video-extract
 
 ### Manual Installation
 
@@ -33,9 +40,6 @@ video-extract init
 - FFmpeg (for video processing)
 - OpenAI API key
 - Optional: Tesseract OCR
-- Optional: Tesseract OCR (for slide text extraction)
-
-## Installation
 
 1. **Clone the repository:**
    ```bash
