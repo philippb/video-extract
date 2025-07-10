@@ -23,7 +23,7 @@ def read_requirements():
 
 setup(
     name="video-extract",
-    version="1.0.0",
+    version="1.0.1",
     author="Philipp",
     author_email="",
     description="AI-powered YouTube video transcript and slide analyzer",

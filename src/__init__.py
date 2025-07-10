@@ -5,7 +5,7 @@ A Python CLI tool that processes YouTube videos to extract transcripts, detect s
 align content, and generate AI-powered summaries using OpenAI's API.
 """
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 __author__ = "Philipp"
 __license__ = "MIT"
 
