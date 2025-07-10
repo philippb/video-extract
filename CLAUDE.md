@@ -17,23 +17,15 @@
 - OpenAI API key
 - Optional: Tesseract OCR
 
-## Installation
-```bash
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-```
-
 ## Installation & Setup
 ```bash
 # Via Homebrew (recommended)
 brew install video-extract
 video-extract init
 
-# Or manual installation
-python -m venv .venv
-source .venv/bin/activate
-pip install -e .
+# Or manual installation with Poetry
+poetry install
+poetry shell
 ```
 
 ## Usage
@@ -56,13 +48,13 @@ video-extract slides VIDEO_ID --max-slides 10
 
 ## Testing
 ```bash
-python -m pytest tests/
+poetry run python -m pytest tests/
 ```
 
 ## Linting
 ```bash
-python -m flake8 src/ cli.py
-python -m black src/ cli.py --check
+poetry run python -m flake8 src/ cli.py
+poetry run python -m black src/ cli.py --check
 ```
 
 ## Project Structure

@@ -1,0 +1,63 @@
+[tool.poetry]
+name = "video-extract"
+version = "1.0.1"
+description = "Extract YouTube video transcripts and slide images, align them, and generate GPT-4 summaries"
+authors = ["Your Name <your.email@example.com>"]
+readme = "README.md"
+packages = [
+    { include = "src" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.8.1"
+youtube-transcript-api = "^0.6.0"
+yt-dlp = "^2024.10.22"
+openai = "^1.0.0"
+pillow = "^10.0.0"
+opencv-python = "^4.8.0"
+pytesseract = "^0.3.10"
+imagehash = "^4.3.1"
+requests = "^2.32.0"
+tenacity = "^8.2.0"
+tqdm = "^4.66.0"
+python-dotenv = "^1.0.0"
+argparse-color-formatter = "^2.0.0"
+mypy = "^1.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.0"
+pytest-cov = "^5.0.0"
+black = "^24.0.0"
+flake8 = "^7.0.0"
+autoflake = "^2.0.0"
+
+[tool.poetry.scripts]
+video-extract = "src.cli:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 79
+target-version = ['py38']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.flake8]
+max-line-length = 79
+ignore = []

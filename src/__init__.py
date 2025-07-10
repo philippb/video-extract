@@ -19,7 +19,7 @@ from .output import OutputGenerator
 
 __all__ = [
     "Config",
-    "TranscriptDownloader", 
+    "TranscriptDownloader",
     "SlideExtractor",
     "TranscriptSlideAligner",
     "SlideOCR",

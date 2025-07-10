@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -m flake8:*)",
+      "Bash(poetry run python:*)",
+      "Bash(poetry add:*)"
+    ],
+    "deny": []
+  }
+}

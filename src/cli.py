@@ -3,10 +3,9 @@
 import argparse
 import sys
 import os
-import shutil
 import subprocess
-from typing import Optional
 from pathlib import Path
+from dotenv import load_dotenv
 
 try:
     # Package imports (when installed)
@@ -43,11 +42,11 @@ def get_env_example_path():
         Path(__file__).parent.parent / ".env.example",  # Parent of src/
         Path(__file__).parent / ".env.example",  # In src/
     ]
-    
+
     for path in possible_paths:
         if path.exists():
             return path
-    
+
     # If not found, return the expected location
     return Path(__file__).parent.parent / ".env.example"
 
@@ -55,38 +54,42 @@ def get_env_example_path():
 def init_command():
     """Initialize video-extract configuration with API key prompt"""
     print("🚀 Initializing video-extract...")
-    
+
     # Create config directory
     config_dir = get_config_dir()
     config_dir.mkdir(exist_ok=True)
     print(f"📁 Config directory: {config_dir}")
-    
+
     env_path = config_dir / ".env"
-    
+
     if env_path.exists():
         print(f"⚠️  Configuration already exists at {env_path}")
         response = input("Reinitialize? (y/N): ").strip().lower()
-        if response != 'y':
+        if response != "y":
             print("✅ Keeping existing configuration")
-            print(f"💡 Use 'video-extract config' to edit settings")
+            print("💡 Use 'video-extract config' to edit settings")
             return
-    
+
     # Prompt for OpenAI API key
     print("\n🔑 OpenAI API Key Setup")
     print("Get your API key from: https://platform.openai.com/api-keys")
-    
+
     api_key = input("\nEnter your OpenAI API key: ").strip()
-    
+
     if not api_key:
         print("❌ No API key provided. Initialization cancelled.")
         return
-    
+
     # Ask for optional tier
     print("\n📊 OpenAI Usage Tier (for rate limiting optimization)")
     print("0 = Free tier, 1 = Tier 1 ($5+ spent), 2+ = Higher tiers")
     tier_input = input("Enter your tier (default: 1): ").strip()
-    tier = tier_input if tier_input.isdigit() and 0 <= int(tier_input) <= 5 else "1"
-    
+    tier = (
+        tier_input
+        if tier_input.isdigit() and 0 <= int(tier_input) <= 5
+        else "1"
+    )
+
     # Create configuration file
     config_content = f"""# OpenAI Configuration (Required)
 OPENAI_API_KEY={api_key}
@@ -115,31 +118,31 @@ SLIDES_DIR=slides
 # Language Settings
 DEFAULT_LANGUAGE=en
 """
-    
-    with open(env_path, 'w') as f:
+
+    with open(env_path, "w") as f:
         f.write(config_content)
-    
+
     print(f"\n✅ Configuration saved to: {env_path}")
-    print(f"🎉 video-extract is ready to use!")
-    print(f"\nNext steps:")
-    print(f"• Process a video: video-extract <VIDEO_ID>")
-    print(f"• Edit settings: video-extract config")
-    print(f"• Get help: video-extract --help")
+    print("🎉 video-extract is ready to use!")
+    print("\nNext steps:")
+    print("• Process a video: video-extract <VIDEO_ID>")
+    print("• Edit settings: video-extract config")
+    print("• Get help: video-extract --help")
 
 
 def config_command():
     """Open configuration file in editor"""
     config_dir = get_config_dir()
     env_path = config_dir / ".env"
-    
+
     if not env_path.exists():
         print(f"❌ No configuration found at {env_path}")
         print("Run 'video-extract init' first to create configuration")
         return
-    
+
     print(f"🔧 Opening configuration file: {env_path}")
-    
-    editor = os.environ.get('EDITOR', 'nano')
+
+    editor = os.environ.get("EDITOR", "nano")
     try:
         subprocess.run([editor, str(env_path)], check=True)
         print("✅ Configuration updated")
@@ -157,98 +160,96 @@ def parse_arguments():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  video-extract init                                    # Setup with API key prompt
-  video-extract config                                  # Edit configuration file
+  video-extract init                    # Setup with API key prompt
+  video-extract config                  # Edit configuration file
   video-extract slides "https://www.youtube.com/watch?v=VIDEO_ID"
   video-extract slides VIDEO_ID --output-format json --scene-threshold 0.2
   video-extract slides "https://youtu.be/VIDEO_ID" --dry-run --no-ocr
   video-extract slides VIDEO_ID --language es --max-slides 20
-        """
+        """,
     )
-    
+
     # Add subcommands
-    subparsers = parser.add_subparsers(dest='command', help='Available commands', required=True)
-    
-    # Init command
-    init_parser = subparsers.add_parser('init', help='Initialize configuration with API key setup')
-    
-    # Config command
-    config_parser = subparsers.add_parser('config', help='Open configuration file in editor')
-    
-    # Slides command (main processing)
-    slides_parser = subparsers.add_parser('slides', help='Extract and analyze video slides')
-    slides_parser.add_argument(
-        "url_or_id",
-        help="YouTube URL or video ID"
+    subparsers = parser.add_subparsers(
+        dest="command", help="Available commands", required=True
     )
-    
+
+    # Init command
+    subparsers.add_parser(
+        "init", help="Initialize configuration with API key setup"
+    )
+
+    # Config command
+    subparsers.add_parser("config", help="Open configuration file in editor")
+
+    # Slides command (main processing)
+    slides_parser = subparsers.add_parser(
+        "slides", help="Extract and analyze video slides"
+    )
+    slides_parser.add_argument("url_or_id", help="YouTube URL or video ID")
+
     slides_parser.add_argument(
         "--output-format",
         choices=["markdown", "json"],
         default="markdown",
-        help="Output format (default: markdown)"
+        help="Output format (default: markdown)",
     )
-    
+
     slides_parser.add_argument(
         "--scene-threshold",
         type=float,
-        help="Scene change detection threshold (0.1-1.0, default: 0.3)"
+        help="Scene change detection threshold (0.1-1.0, default: 0.3)",
     )
-    
+
     slides_parser.add_argument(
         "--language",
         default="en",
-        help="Transcript language code (default: en)"
+        help="Transcript language code (default: en)",
     )
-    
+
     slides_parser.add_argument(
         "--max-slides",
         type=int,
-        help="Maximum number of slides to extract (default: 100)"
+        help="Maximum number of slides to extract (default: 100)",
     )
-    
+
     slides_parser.add_argument(
         "--openai-tier",
         type=int,
         choices=[0, 1, 2, 3, 4, 5],
-        help="OpenAI API tier for rate limiting (0-5, default: from config)"
+        help="OpenAI API tier for rate limiting (0-5, default: from config)",
     )
-    
+
     slides_parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Skip API calls for testing"
+        "--dry-run", action="store_true", help="Skip API calls for testing"
     )
-    
+
     slides_parser.add_argument(
-        "--no-ocr",
-        action="store_true",
-        help="Skip OCR text extraction"
+        "--no-ocr", action="store_true", help="Skip OCR text extraction"
     )
-    
+
     slides_parser.add_argument(
         "--no-vision",
         action="store_true",
-        help="Use text-only AI summarization"
+        help="Use text-only AI summarization",
     )
-    
+
     slides_parser.add_argument(
         "--keep-temp",
         action="store_true",
-        help="Keep temporary files after processing"
+        help="Keep temporary files after processing",
     )
-    
+
     slides_parser.add_argument(
         "--log-level",
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
-        help="Logging level"
+        help="Logging level",
     )
-    
+
     slides_parser.add_argument(
-        "--output-dir",
-        help="Output directory for reports"
+        "--output-dir", help="Output directory for reports"
     )
-    
+
     return parser.parse_args()
 
 
@@ -257,21 +258,21 @@ def validate_args(args, config):
         if not 0.1 <= args.scene_threshold <= 1.0:
             raise ValueError("Scene threshold must be between 0.1 and 1.0")
         config.SCENE_THRESHOLD = args.scene_threshold
-    
+
     if args.language:
         config.DEFAULT_LANGUAGE = args.language
-    
+
     if args.openai_tier is not None:
         config.OPENAI_TIER = args.openai_tier
-    
+
     if args.max_slides is not None:
         if args.max_slides < 1:
             raise ValueError("Max slides must be at least 1")
         config.MAX_SLIDES = args.max_slides
-    
+
     if args.log_level:
         config.LOG_LEVEL = args.log_level
-    
+
     if args.output_dir:
         config.OUTPUT_DIR = args.output_dir
 
@@ -280,9 +281,8 @@ def load_config_from_user_dir():
     """Load configuration from user's config directory"""
     config_dir = get_config_dir()
     env_path = config_dir / ".env"
-    
+
     if env_path.exists():
-        from dotenv import load_dotenv
         load_dotenv(env_path)
         print(f"📋 Loaded configuration from: {env_path}")
     else:
@@ -293,36 +293,38 @@ def load_config_from_user_dir():
 def main():
     try:
         args = parse_arguments()
-        
+
         # Handle init command
-        if args.command == 'init':
+        if args.command == "init":
             init_command()
             return
-        
+
         # Handle config command
-        if args.command == 'config':
+        if args.command == "config":
             config_command()
             return
-        
+
         # Handle slides command
-        if args.command == 'slides':
+        if args.command == "slides":
             # Check if URL/ID is provided
             if not args.url_or_id:
                 print("❌ Error: YouTube URL or video ID is required")
-                print("Run 'video-extract slides --help' for usage information")
+                print(
+                    "Run 'video-extract slides --help' for usage information"
+                )
                 sys.exit(1)
         else:
             print("❌ Error: Unknown command")
             print("Run 'video-extract --help' for usage information")
             sys.exit(1)
-        
+
         # Initialize configuration
         config = Config()
-        
+
         # Load user configuration and reload config
         load_config_from_user_dir()
         config.reload_from_env()  # Reload after .env file is loaded
-        
+
         # Validate configuration
         try:
             config.validate()
@@ -330,25 +332,25 @@ def main():
             print(f"❌ Configuration error: {e}")
             print("Run 'video-extract init' to set up configuration")
             sys.exit(1)
-        
+
         # Override config with command line arguments
         validate_args(args, config)
-        
+
         # Setup logging
         logger = setup_logger(config.LOG_LEVEL)
         logger.info("Starting video-extract processing")
-        
+
         # Extract video ID from URL if needed
         video_id = config.get_video_id_from_url(args.url_or_id)
         if not video_id:
             logger.error(f"Could not extract video ID from: {args.url_or_id}")
             sys.exit(1)
-        
+
         logger.info(f"Processing video: {video_id}")
         logger.info(f"Output format: {args.output_format}")
         logger.info(f"Scene threshold: {config.SCENE_THRESHOLD}")
         logger.info(f"Max slides: {config.MAX_SLIDES}")
-        
+
         # Initialize components
         downloader = TranscriptDownloader(config)
         slide_extractor = SlideExtractor(config)
@@ -356,17 +358,19 @@ def main():
         ocr = SlideOCR(config) if not args.no_ocr else None
         summarizer = SlideSummarizer(config) if not args.dry_run else None
         output_generator = OutputGenerator(config)
-        
+
         # Step 1: Download transcript
         logger.info("Step 1: Downloading transcript...")
         try:
-            transcript = downloader.download_transcript(video_id, args.language)
+            transcript = downloader.download_transcript(
+                video_id, args.language
+            )
             transcript_path = downloader.save_transcript(transcript, video_id)
             logger.info(f"Transcript saved: {transcript_path}")
         except Exception as e:
             logger.error(f"Failed to download transcript: {e}")
             sys.exit(1)
-        
+
         # Step 2: Extract slides
         logger.info("Step 2: Extracting slides...")
         try:
@@ -375,16 +379,20 @@ def main():
         except Exception as e:
             logger.error(f"Failed to extract slides: {e}")
             sys.exit(1)
-        
+
         # Step 3: Align transcript with slides
         logger.info("Step 3: Aligning transcript with slides...")
         try:
-            aligned_slides = aligner.align_transcript_with_slides(transcript, slides)
-            logger.info(f"Aligned {len(aligned_slides)} slides with transcript")
+            aligned_slides = aligner.align_transcript_with_slides(
+                transcript, slides
+            )
+            logger.info(
+                f"Aligned {len(aligned_slides)} slides with transcript"
+            )
         except Exception as e:
             logger.error(f"Failed to align transcript with slides: {e}")
             sys.exit(1)
-        
+
         # Step 4: OCR (optional)
         if ocr and not args.no_ocr:
             logger.info("Step 4: Extracting text from slides...")
@@ -393,45 +401,49 @@ def main():
                 logger.info("OCR processing completed")
             except Exception as e:
                 logger.warning(f"OCR processing failed: {e}")
-        
+
         # Step 5: Summarize slides
         if summarizer and not args.dry_run:
             logger.info("Step 5: Generating AI summaries...")
             try:
                 use_vision = not args.no_vision
-                summarized_slides = summarizer.summarize_slides(aligned_slides, use_vision=use_vision)
-                logger.info(f"Generated summaries for {len(summarized_slides)} slides")
+                summarized_slides = summarizer.summarize_slides(
+                    aligned_slides, use_vision=use_vision
+                )
+                logger.info(
+                    f"Generated summaries for {len(summarized_slides)} slides"
+                )
             except Exception as e:
                 logger.error(f"Failed to generate summaries: {e}")
                 sys.exit(1)
         else:
             logger.info("Step 5: Skipping AI summarization (dry run)")
             summarized_slides = aligned_slides
-        
+
         # Step 6: Generate output
         logger.info("Step 6: Generating output...")
         try:
             output_path = output_generator.generate_output(
-                summarized_slides, 
-                video_id, 
+                summarized_slides,
+                video_id,
                 format_type=args.output_format,
-                video_url=args.url_or_id
+                video_url=args.url_or_id,
             )
-            
+
             logger.info(f"Output saved: {output_path}")
-            print(f"\n✅ Processing complete!")
+            print("\n✅ Processing complete!")
             print(f"📄 Report saved to: {output_path}")
-            
+
         except Exception as e:
             logger.error(f"Failed to generate output: {e}")
             sys.exit(1)
-        
+
         # Cleanup temporary files if not keeping them
         if not args.keep_temp:
             logger.debug("Cleaning up temporary files...")
-        
+
         logger.info("Processing completed successfully")
-        
+
     except KeyboardInterrupt:
         print("\n❌ Processing interrupted by user")
         sys.exit(1)
