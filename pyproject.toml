@@ -9,9 +9,9 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.8.1"
+python = "3.13.5"
 youtube-transcript-api = "^0.6.0"
-yt-dlp = "^2024.10.22"
+yt-dlp = "2025.6.30"
 openai = "^1.0.0"
 pillow = "^10.0.0"
 opencv-python = "^4.8.0"
