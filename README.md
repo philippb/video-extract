@@ -47,18 +47,22 @@ For more details, see: https://github.com/philippb/homebrew-video-extract
    cd youtube-slide-summarizer
    ```
 
-2. **Create and activate virtual environment:**
+2. **Install Poetry (if not already installed):**
    ```bash
-   python -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   curl -sSL https://install.python-poetry.org | python3 -
    ```
 
-3. **Install dependencies:**
+3. **Install dependencies using Poetry:**
    ```bash
-   pip install -r requirements.txt
+   poetry install
    ```
 
-4. **Install FFmpeg:**
+4. **Activate Poetry virtual environment:**
+   ```bash
+   poetry env activate
+   ```
+
+5. **Install FFmpeg:**
    
    **macOS (using Homebrew):**
    ```bash
